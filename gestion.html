@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RH Monitor | Gestion des employés</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            padding: 16px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: url("./assets/images/_.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .panel {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 18px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .panel-header h1 {
+            margin: 0;
+            font-size: 1.35rem;
+        }
+
+        .btn-back {
+            background: #f1f5f9;
+            color: #334155;
+            border: 1px solid var(--border);
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .btn-back:hover {
+            background: #e2e8f0;
+        }
+
+        .search-bar {
+            flex-shrink: 0;
+        }
+
+        .search-bar input {
+            width: 100%;
+            max-width: 360px;
+            padding: 10px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+        }
+
+        .search-bar input:focus {
+            border-color: var(--primary);
+        }
+
+        .card {
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        th.col-actions,
+        td.col-actions {
+            text-align: right;
+            width: 1%;
+            white-space: nowrap;
+        }
+
+        .btn-delete {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+
+        .btn-delete:hover {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .empty {
+            padding: 40px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+    <section class="panel">
+        <div class="panel-header">
+            <h1>Gestion des employés</h1>
+            <a href="/admin" class="btn-back">← Retour aux pointages</a>
+        </div>
+
+        <div class="search-bar">
+            <input type="search" id="searchInput" placeholder="Rechercher un employé ou une machine...">
+        </div>
+
+        <div class="card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Employé / Machine</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <tr>
+                        <td colspan="2" class="empty">Chargement...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <script>
+        const body = document.getElementById('tableBody');
+        const searchInput = document.getElementById('searchInput');
+        let allEmployees = [];
+
+        function escapeHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function filterEmployees(data) {
+            const q = (searchInput.value || '').trim().toLowerCase();
+            if (!q) return data;
+            return data.filter(user => {
+                const haystack = `${user.nom || ''} ${user.pcName || ''}`.toLowerCase();
+                return haystack.includes(q);
+            });
+        }
+
+        function renderTable(data) {
+            const filtered = filterEmployees(data);
+            if (!filtered.length) {
+                body.innerHTML = '<tr><td colspan="2" class="empty">Aucun employé trouvé</td></tr>';
+                return;
+            }
+
+            body.innerHTML = filtered.map(user => `
+                <tr>
+                    <td>
+                        <strong style="font-size:0.85rem">${escapeHtml(user.nom)}</strong><br>
+                        <small style="color:#64748b">${escapeHtml(user.pcName)}</small>
+                    </td>
+                    <td class="col-actions">
+                        <button class="btn-delete" data-nom="${escapeHtml(user.nom)}">
+                            Supprimer
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            body.querySelectorAll('.btn-delete').forEach(btn => {
+                btn.addEventListener('click', () => deleteEmployee(btn.dataset.nom));
+            });
+        }
+
+        async function refreshData() {
+            try {
+                const res = await fetch(`__SERVER_URL__/api/employees`);
+                const data = await res.json();
+                allEmployees = Array.isArray(data) ? data : [];
+                renderTable(allEmployees);
+            } catch (err) {
+                console.error(err);
+                body.innerHTML = '<tr><td colspan="2" class="empty">Erreur de chargement</td></tr>';
+            }
+        }
+
+        async function deleteEmployee(nom) {
+            if (!confirm(`Supprimer tous les pointages de "${nom}" ?`)) return;
+
+            try {
+                const res = await fetch(`__SERVER_URL__/api/employees/${encodeURIComponent(nom)}`, {
+                    method: 'DELETE'
+                });
+                if (res.ok) {
+                    refreshData();
+                } else {
+                    alert('Erreur lors de la suppression');
+                }
+            } catch (err) {
+                alert('Erreur lors de la suppression');
+            }
+        }
+
+        searchInput.addEventListener('input', () => renderTable(allEmployees));
+        refreshData();
+    </script>
+</body>
+
+</html>

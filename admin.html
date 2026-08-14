@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>RH Monitor | Dashboard Temps Réel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --border: #e2e8f0;
+            --online: #22c55e;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            color: var(--text);
+            padding: 16px;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            background-image: url("./assets/images/_.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+        }
+
+        .container {
+            max-width: none;
+            width: 100%;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            margin: 0;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 16px;
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .online-count {
+            background: #dcfce7;
+            color: #166534;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 999px;
+        }
+
+        .online-list {
+            list-style: none;
+            margin: 0;
+            padding: 10px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .online-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            transition: background 0.15s ease;
+        }
+
+        .online-item:hover {
+            background: #f8fafc;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            font-weight: 700;
+            flex-shrink: 0;
+            text-transform: uppercase;
+        }
+
+        .online-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .online-info strong {
+            display: block;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .online-info small {
+            display: block;
+            color: #64748b;
+            font-size: 0.65rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--online);
+            box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+            flex-shrink: 0;
+        }
+
+        .online-empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 0.75rem;
+        }
+
+        .sidebar-clock {
+            margin-top: auto;
+            padding: 16px 18px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .sidebar-clock .clock-time {
+            display: block;
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: 0.04em;
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+
+        .sidebar-clock .clock-date {
+            display: block;
+            margin-top: 4px;
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: capitalize;
+        }
+
+        .main-panel {
+            min-width: 0;
+            height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            padding: 18px 20px;
+            overflow: hidden;
+        }
+
+        .main-panel h1 {
+            margin: 0;
+            font-size: 1.35rem;
+            flex-shrink: 0;
+            line-height: 1.2;
+        }
+
+        .filters {
+            background: #f8fafc;
+            padding: 12px 15px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+
+        input[type="date"],
+        input[type="search"] {
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: inherit;
+        }
+
+        input[type="search"] {
+            min-width: 200px;
+            flex: 1;
+            max-width: 280px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            overflow: auto;
+            flex: 1;
+            min-height: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 15px;
+            text-align: left;
+            font-size: 0.75rem;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.5rem;
+            font-weight: 600;
+        }
+
+        .badge-online {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-offline {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .time {
+            font-weight: 600;
+            color: var(--primary);
+            line-height: 1.5;
+        }
+
+        .btn-today {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-today:hover {
+            background-color: #1d4ed8;
+        }
+
+        .btn-today:active {
+            transform: scale(0.98);
+        }
+
+        .btn-delete {
+            background-color: #fee2e2;
+            color: #dc2626;
+            border: 1px solid #fecaca;
+            padding: 6px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .btn-delete:hover {
+            background-color: #dc2626;
+            color: white;
+        }
+
+        .btn-gestion {
+            background-color: #475569;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-gestion:hover {
+            background-color: #334155;
+        }
+
+        .btn-export {
+            background-color: #16a34a;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .btn-export:hover {
+            background-color: #15803d;
+        }
+
+        .btn-export:active {
+            transform: scale(0.98);
+        }
+
+        .btn-logout {
+            position: fixed;
+            top: 30px;
+            right: 50px;
+            background: #ffffff;
+            color: #dc2626;
+            width: 30px;
+            height: 30px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            border: 1px solid var(--border);
+        }
+
+        .btn-logout:hover {
+            background: #dc2626;
+            color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(220, 38, 38, 0.3);
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: 16px;
+                height: auto;
+                min-height: 100vh;
+                overflow: auto;
+            }
+
+            .container,
+            .layout {
+                height: auto;
+            }
+
+            .layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                height: 280px;
+            }
+
+            .main-panel {
+                height: auto;
+                min-height: 60vh;
+            }
+
+            .btn-logout {
+                right: 16px;
+                top: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <a href="/logout" class="btn-logout" title="Déconnexion">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+            <polyline points="16 17 21 12 16 7"></polyline>
+            <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+    </a>
+    <div class="container">
+        <div class="layout">
+            <aside class="sidebar">
+                <div class="sidebar-header">
+                    <h2>En ligne</h2>
+                    <span class="online-count" id="onlineCount">0</span>
+                </div>
+                <ul class="online-list" id="onlineList">
+                    <li class="online-empty">Aucun utilisateur en ligne</li>
+                </ul>
+                <div class="sidebar-clock">
+                    <span class="clock-time" id="clockTime">--:--</span>
+                    <span class="clock-date" id="clockDate">--</span>
+                </div>
+            </aside>
+
+            <section class="main-panel">
+                <h1>Pointages Employés 📊</h1>
+
+                <div class="filters">
+                    <label for="datePicker" style="font-size:0.7rem">Choisir une date :</label>
+                    <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap; flex: 1;">
+                        <input type="date" id="datePicker">
+                        <button id="btnToday" class="btn-today">Aujourd'hui</button>
+                        <input type="search" id="searchInput" placeholder="Rechercher employé, machine, IP...">
+                        <a href="/gestion" class="btn-gestion">Gestion des employés</a>
+                        <button id="btnExport" class="btn-export">
+                            <span>📥</span> Exporter en Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Employé / Machine</th>
+                                <th>Adresse IP</th>
+                                <th>Début</th>
+                                <th>Fin</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+    <script>
+        const datePicker = document.getElementById('datePicker');
+        const body = document.getElementById('tableBody');
+        const btnToday = document.getElementById('btnToday');
+        const searchInput = document.getElementById('searchInput');
+        const onlineList = document.getElementById('onlineList');
+        const onlineCount = document.getElementById('onlineCount');
+        const clockTime = document.getElementById('clockTime');
+        const clockDate = document.getElementById('clockDate');
+        let allRows = [];
+
+        function updateClock() {
+            const now = new Date();
+            clockTime.textContent = now.toLocaleTimeString('fr-FR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+            });
+            clockDate.textContent = now.toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+            });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
+
+        datePicker.value = new Date().toLocaleDateString('fr-CA');
+
+        const socket = io('__SERVER_URL__');
+
+        function getSessions(user) {
+            if (user.sessions && user.sessions.length > 0) {
+                return user.sessions;
+            }
+            if (user.debut) {
+                return [{ debut: user.debut, fin: user.fin || '--' }];
+            }
+            return [];
+        }
+
+        function isOnline(user) {
+            return (user.statut || '').includes('🟢');
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) {
+                return (parts[0][0] + parts[1][0]).toUpperCase();
+            }
+            return name.slice(0, 2).toUpperCase();
+        }
+
+        function renderOnlineUsers(data) {
+            const onlineUsers = data.filter(isOnline);
+            onlineCount.textContent = onlineUsers.length;
+
+            if (onlineUsers.length === 0) {
+                onlineList.innerHTML = '<li class="online-empty">Aucun utilisateur en ligne</li>';
+                return;
+            }
+
+            onlineList.innerHTML = onlineUsers.map(user => `
+                <li class="online-item">
+                    <div class="avatar">${getInitials(user.nom)}</div>
+                    <div class="online-info">
+                        <strong>${user.nom}</strong>
+                        <small>${user.pcName || ''} · ${user.ip || ''}</small>
+                    </div>
+                    <span class="status-dot" title="En ligne"></span>
+                </li>
+            `).join('');
+        }
+
+        function filterRows(data) {
+            const q = (searchInput.value || '').trim().toLowerCase();
+            if (!q) return data;
+            return data.filter(user => {
+                const haystack = `${user.nom || ''} ${user.pcName || ''} ${user.ip || ''}`.toLowerCase();
+                return haystack.includes(q);
+            });
+        }
+
+        function renderTable(data) {
+            const filtered = filterRows(data);
+            body.innerHTML = '';
+            if (filtered.length === 0) {
+                body.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center;color:#94a3b8;padding:24px;font-size:0.8rem">
+                            Aucun résultat
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            filtered.forEach(user => {
+                const sessions = getSessions(user);
+                const online = isOnline(user);
+                const debutHtml = sessions.map(s => s.debut).join('<br>');
+                const finHtml = sessions.map(s => s.fin || '--').join('<br>');
+
+                body.innerHTML += `
+                    <tr>
+                        <td>
+                            <strong style="font-size:0.7rem">${user.nom}</strong><br>
+                            <small style="color:#64748b">${user.pcName}</small>
+                        </td>
+                        <td><code style="font-size:0.7rem">${user.ip}</code></td>
+                        <td class="time" style="font-size:0.7rem">${debutHtml}</td>
+                        <td class="time" style="color:#94a3b8; font-size:0.7rem">${finHtml}</td>
+                        <td>
+                            <span class="badge ${online ? 'badge-online' : 'badge-offline'}" style="font-size:0.5rem">
+                                ${online ? 'EN LIGNE' : 'DÉCONNECTÉ'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        async function fetchOnlineUsers() {
+            try {
+                const today = new Date().toLocaleDateString('fr-CA');
+                const res = await fetch(`__SERVER_URL__/api/status?date=${today}`);
+                const data = await res.json();
+                renderOnlineUsers(data);
+            } catch (err) {
+                console.error('Erreur online:', err);
+            }
+        }
+
+        async function refreshData() {
+            try {
+                const res = await fetch(`__SERVER_URL__/api/status?date=${datePicker.value}`);
+                const data = await res.json();
+                allRows = Array.isArray(data) ? data : [];
+                renderTable(allRows);
+
+                const today = new Date().toLocaleDateString('fr-CA');
+                if (datePicker.value === today) {
+                    renderOnlineUsers(allRows);
+                } else {
+                    await fetchOnlineUsers();
+                }
+            } catch (err) {
+                console.error('Erreur Fetch:', err);
+            }
+        }
+
+        socket.on('update-list', (newData) => {
+            const today = new Date().toLocaleDateString('fr-CA');
+            renderOnlineUsers(newData);
+            if (datePicker.value === today) {
+                allRows = Array.isArray(newData) ? newData : [];
+                renderTable(allRows);
+            }
+        });
+
+        datePicker.addEventListener('change', refreshData);
+        searchInput.addEventListener('input', () => renderTable(allRows));
+
+        btnToday.addEventListener('click', () => {
+            const today = new Date().toLocaleDateString('fr-CA');
+            if (datePicker.value !== today) {
+                datePicker.value = today;
+                refreshData();
+            }
+        });
+
+        refreshData();
+
+        document.getElementById('btnExport').addEventListener('click', async () => {
+            const selectedDate = document.getElementById('datePicker').value;
+
+            try {
+                const res = await fetch(`__SERVER_URL__/api/status?date=${selectedDate}`);
+                const data = await res.json();
+
+                if (!Array.isArray(data) || data.length === 0) {
+                    alert('Aucune donnée à exporter pour cette date.');
+                    return;
+                }
+
+                const workbook = new ExcelJS.Workbook();
+                const sheet = workbook.addWorksheet('Pointages');
+
+                sheet.columns = [
+                    { header: 'Employé', key: 'nom', width: 16 },
+                    { header: 'Machine', key: 'pcName', width: 16 },
+                    { header: 'IP', key: 'ip', width: 16 },
+                    { header: 'Date', key: 'date', width: 14 },
+                    { header: 'Heure Début', key: 'debut', width: 14 },
+                    { header: 'Heure Fin', key: 'fin', width: 14 },
+                ];
+
+                sheet.getRow(1).font = { bold: true };
+
+                data.forEach(item => {
+                    const sessions = (item.sessions && item.sessions.length > 0)
+                        ? item.sessions
+                        : (item.debut ? [{ debut: item.debut, fin: item.fin || '--' }] : []);
+
+                    const row = sheet.addRow({
+                        nom: item.nom,
+                        pcName: item.pcName,
+                        ip: item.ip,
+                        date: item.date,
+                        debut: sessions.map(s => s.debut).join('\n'),
+                        fin: sessions.map(s => s.fin || '--').join('\n'),
+                    });
+
+                    const lineCount = Math.max(sessions.length, 1);
+                    row.height = 18 * lineCount;
+
+                    ['debut', 'fin'].forEach(key => {
+                        const cell = row.getCell(key);
+                        cell.alignment = { wrapText: true, vertical: 'top' };
+                    });
+
+                    ['nom', 'pcName', 'ip', 'date'].forEach(key => {
+                        row.getCell(key).alignment = { vertical: 'top' };
+                    });
+                });
+
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], {
+                    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `Pointages_RH_${selectedDate}.xlsx`;
+                link.click();
+                URL.revokeObjectURL(url);
+            } catch (err) {
+                console.error('Erreur export:', err);
+            }
+        });
+    </script>
+</body>
+
+</html>
